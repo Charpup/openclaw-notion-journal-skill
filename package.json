@@ -1,0 +1,31 @@
+{
+  "name": "notion-journal-skill",
+  "version": "1.0.0",
+  "description": "Production-ready Notion Journal management skill for OpenClaw",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": [
+    "notion",
+    "journal",
+    "openclaw-skill",
+    "diary",
+    "automation"
+  ],
+  "author": "Galatea",
+  "license": "MIT",
+  "dependencies": {
+    "@notionhq/client": "^5.9.0",
+    "@tryfabric/martian": "^1.2.4"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Charpup/openclaw-notion-journal-skill.git"
+  }
+}

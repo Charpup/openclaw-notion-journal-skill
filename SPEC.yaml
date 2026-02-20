@@ -1,0 +1,304 @@
+# SPEC.yaml - Notion Journal Skill Specification
+
+spec_version: "1.0.0"
+skill_name: "notion-journal"
+description: "Production-ready Notion Journal management skill with automated entry creation, content generation, and intelligent backfilling"
+author: "Galatea"
+version: "1.0.0"
+
+---
+
+## Interfaces
+
+### Core Interface: NotionJournal
+
+#### Methods
+
+##### createEntry(entryData)
+**Purpose**: Create a new journal entry in Notion database
+
+**Input:**
+```typescript
+{
+  title: string;           // Required, format: "YYYY-MM-DD"
+  date?: string;           // Optional, defaults to today
+  content?: {
+    blocks?: Block[];      // Notion blocks
+    markdown?: string;     // Alternative: markdown text
+  };
+  template?: string;       // Optional: "daily" | "minimal" | "weekly"
+  metadata?: {
+    mood?: string[];       // e.g., ["Focused", "Productive"]
+    tags?: string[];       // Custom tags
+  };
+}
+```
+
+**Output:**
+```typescript
+{
+  success: boolean;
+  data: {
+    id: string;
+    url: string;
+    createdAt: string;
+  };
+  error?: JournalError;
+}
+```
+
+**Preconditions:**
+- NOTION_TOKEN environment variable set
+- Journal database exists (or auto-create enabled)
+- Title format valid (YYYY-MM-DD)
+
+**Postconditions:**
+- Entry created in Notion database
+- Properties populated: Daily Journal, How I felt today?, Anything in particular?
+- Content blocks appended (if provided)
+
+**Scenarios:**
+1. **Happy Path**: Valid input → Entry created → Success returned
+2. **Duplicate Prevention**: Same date exists → Return existing entry info
+3. **Database Auto-creation**: Database missing → Auto-create → Then create entry
+4. **Content Generation**: No content provided → Generate from memory → Append
+
+---
+
+##### generateContent(date)
+**Purpose**: Generate journal content from memory files
+
+**Input:** `date` (string, "YYYY-MM-DD")
+
+**Output:**
+```typescript
+{
+  success: boolean;
+  data: {
+    summary: string;       // 100-200 character summary
+    mood: string[];        // Detected mood tags
+    content: Block[];      // Generated Notion blocks
+  };
+}
+```
+
+**Process:**
+1. Scan `/root/.openclaw/workspace/memory/YYYY-MM-DD*.md`
+2. Extract key activities and events
+3. Generate mood tags based on content sentiment
+4. Create formatted Notion blocks
+5. Generate concise summary
+
+**Scenarios:**
+1. **Memory Exists**: Read files → Extract → Generate → Return
+2. **No Memory**: Return empty template with greeting
+3. **Multiple Files**: Merge content chronologically
+
+---
+
+##### backfillMissingDates()
+**Purpose**: Create entries for dates without journals
+
+**Input:** None (uses current date as end, scans backwards)
+
+**Output:**
+```typescript
+{
+  success: boolean;
+  data: {
+    scanned: number;       // Days scanned
+    missing: number;       // Missing entries found
+    created: number;       // Entries created
+    entries: Array<{
+      date: string;
+      id: string;
+      status: "created" | "exists" | "failed";
+    }>;
+  };
+}
+```
+
+**Process:**
+1. Query existing entries from Notion database
+2. Scan last 30 days
+3. Identify missing dates
+4. For each missing date:
+   - Generate content from memory
+   - Create entry
+   - Log result
+
+**Scenarios:**
+1. **Normal Operation**: Scan → Find missing → Create → Report
+2. **All Up-to-date**: Scan → No missing → Report success
+3. **Partial Failure**: Some entries fail → Report with details
+
+---
+
+##### mergeDuplicateEntries(date)
+**Purpose**: Consolidate duplicate entries for a specific date
+
+**Input:** `date` (string, "YYYY-MM-DD")
+
+**Output:**
+```typescript
+{
+  success: boolean;
+  data: {
+    primaryId: string;
+    mergedIds: string[];
+    deletedIds: string[];
+  };
+}
+```
+
+**Process:**
+1. Query entries for date
+2. If duplicates found:
+   - Select primary (most complete content)
+   - Merge properties from others
+   - Archive duplicates
+3. Return consolidation report
+
+---
+
+## Error Handling
+
+### Error Types
+
+| Error | Code | Recovery | Retry |
+|-------|------|----------|-------|
+| ConnectionError | NJ_CONN_001 | Reconnect + fallback | 3x |
+| AuthenticationError | NJ_AUTH_001 | Fail immediately | 0x |
+| NotFoundError | NJ_NF_001 | Fail immediately | 0x |
+| RateLimitError | NJ_RATE_001 | Exponential backoff | 5x |
+| ValidationError | NJ_VAL_001 | Fail immediately | 0x |
+
+### Error Response Format
+
+```typescript
+{
+  success: false;
+  error: {
+    type: string;
+    code: string;
+    message: string;
+    details?: object;
+    suggestion?: string;
+  };
+}
+```
+
+---
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| NOTION_TOKEN | ✅ | - | Notion Integration Token |
+| JOURNAL_DATABASE_ID | ❌ | auto | Database ID (auto-detect if not set) |
+
+### Constructor Options
+
+```typescript
+{
+  notion: {
+    token: string;
+    databaseId?: string;
+  };
+  features: {
+    autoCreateDatabase: boolean;    // default: true
+    duplicateDetection: boolean;    // default: true
+    contentGeneration: boolean;     // default: true
+  };
+}
+```
+
+---
+
+## Testing Requirements
+
+### Unit Tests
+
+| Test | Description |
+|------|-------------|
+| createEntry_happyPath | Valid input creates entry |
+| createEntry_duplicate | Same date returns existing |
+| createEntry_invalidDate | Invalid format throws error |
+| generateContent_fromMemory | Extracts and formats content |
+| generateContent_noMemory | Returns template |
+| backfill_identifiesMissing | Finds and creates missing |
+| backfill_allExist | Returns empty result |
+
+### Integration Tests
+
+| Test | Description |
+|------|-------------|
+| fullWorkflow_createAndRetrieve | E2E create → get → verify |
+| errorRecovery_connectionFailure | Retry and fallback work |
+| rateLimit_handling | Exponential backoff works |
+
+### Acceptance Criteria
+
+- [ ] Can create journal entry with all properties
+- [ ] Can generate content from memory files
+- [ ] Can backfill 7 days in < 30 seconds
+- [ ] Duplicate detection prevents double entries
+- [ ] All errors handled gracefully with suggestions
+- [ ] 80%+ code coverage
+
+---
+
+## Scenarios (BDD)
+
+### Scenario 1: Daily Journal Creation
+
+```gherkin
+Given today is 2026-02-20
+And memory files exist for today
+When createEntry() is called
+Then a new entry is created in Notion
+And properties are populated from memory
+And content blocks include formatted activities
+And summary is generated (100-200 chars)
+```
+
+### Scenario 2: Backfill Missing Entries
+
+```gherkin
+Given entries exist for 2026-02-18, 2026-02-19
+And no entry exists for 2026-02-17
+When backfillMissingDates() is called
+Then 2026-02-17 entry is created
+And content is generated from memory files
+And existing entries are unchanged
+```
+
+### Scenario 3: Duplicate Prevention
+
+```gherkin
+Given entry exists for 2026-02-15
+When createEntry({title: "2026-02-15"}) is called
+Then no new entry is created
+And existing entry info is returned
+And user is notified of duplicate
+```
+
+---
+
+## Dependencies
+
+### Runtime
+- @notionhq/client: ^5.9.0
+- @tryfabric/martian: ^1.2.4
+
+### Dev
+- jest: ^29.7.0
+
+### Optional
+- notion-mcp-wrapper: ^2.0.0 (if using wrapper integration)
+
+---
+
+*Specification for notion-journal-skill v1.0.0*
