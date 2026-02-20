@@ -1,5 +1,5 @@
-const { JournalCore } = require('../lib/journal-core');
-const { NotionAdapter } = require('../lib/notion-adapter');
+const { JournalCore } = require('../../lib/journal-core');
+const { NotionAdapter } = require('../../lib/notion-adapter');
 
 // Mock Notion client
 jest.mock('@notionhq/client', () => {
