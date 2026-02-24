@@ -1,15 +1,16 @@
 # Notion Journal Skill
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Charpup/openclaw-notion-journal-skill/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/Charpup/openclaw-notion-journal-skill/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![OpenClaw](https://img.shields.io/badge/OpenClaw-skill-purple.svg)](https://openclaw.ai)
 
-Production-ready Notion Journal management skill for OpenClaw with automated content generation, intelligent backfilling, and robust error handling.
+Production-ready Notion Journal management skill for OpenClaw with automated content generation, comprehensive memory scanning, intelligent backfilling, and robust error handling.
 
 ## 🚀 Features
 
 - **Automated Entry Creation** - Create journal entries with one call
-- **Content Generation** - Auto-generate content from memory files
+- **Comprehensive Memory Scanning** - v1.1.0: Scan all memory files for a date (snapshots, sessions, briefings)
+- **Smart Content Aggregation** - v1.1.0: Auto-generate structured Journal from multiple sources
 - **Intelligent Backfill** - Find and create missing journal dates
 - **Duplicate Detection** - Prevent duplicate entries
 - **Mood Detection** - Automatically detect mood from content
@@ -60,10 +61,27 @@ const result = await journal.createEntry({
 console.log(result.data.url);
 ```
 
+### Comprehensive Mode (v1.1.0)
+
+```javascript
+// Create entry with comprehensive memory scanning
+// This scans ALL memory files for the date: snapshots, sessions, briefings
+const result = await journal.createEntry({
+  title: '2026-02-20',
+  comprehensive: true  // Enable comprehensive mode
+});
+
+// Or use the dedicated method
+const content = await journal.generateComprehensiveContent('2026-02-20');
+console.log(content.summary);  // Aggregated summary from all sources
+console.log(content.mood);     // Detected mood tags
+console.log(content.memoryFiles); // Number of memory files scanned
+```
+
 ### Backfill Missing Dates
 
 ```javascript
-// Create entries for last 7 days
+// Create entries for last 7 days (uses comprehensive mode by default)
 const backfill = await journal.backfillMissingDates(7);
 
 console.log(`Created ${backfill.data.created} entries`);
@@ -83,21 +101,69 @@ console.log(content.mood); // ['Focused', 'Productive']
 ```
 notion-journal-skill/
 ├── lib/
-│   ├── index.js           # Main entry
-│   ├── journal-core.js    # Core functionality
-│   └── notion-adapter.js  # Notion API adapter
+│   ├── index.js              # Main entry
+│   ├── journal-core.js       # Core functionality
+│   ├── notion-adapter.js     # Notion API adapter
+│   ├── memory-scanner.js     # v1.1.0: Memory file scanner
+│   └── content-aggregator.js # v1.1.0: Content aggregation engine
 ├── scripts/
-│   └── release.sh         # Release helper
+│   └── release.sh            # Release helper
 ├── tests/
-│   └── unit/              # Test suite
-├── SKILL.md               # Skill documentation
-├── SPEC.yaml              # Specification
+│   └── unit/                 # Test suite
+├── SKILL.md                  # Skill documentation
+├── SPEC.yaml                 # Specification
 └── package.json
+```
+
+## 🆕 What's New in v1.1.0
+
+### Comprehensive Memory Scanning
+
+The skill now scans **all** memory files for a given date:
+
+- **System Snapshots** - Health metrics, uptime, load averages
+- **Session Records** - Work sessions, project activities
+- **Daily Briefings** - Moltbook, EvoMap, and other reports
+- **General Activity** - Any other memory files
+
+### Smart Content Aggregation
+
+Automatically generates:
+- 📊 System monitoring section
+- 🚀 Work session summaries
+- 📰 Intelligence briefing highlights
+- 🌟 Today's feelings (auto-detected)
+- Structured Notion blocks
+
+### Usage Example
+
+```javascript
+const { NotionJournal } = require('./lib');
+const journal = new NotionJournal();
+
+// Comprehensive entry creation
+await journal.createEntry({
+  title: '2026-02-24',
+  comprehensive: true
+});
+
+// Generated Journal includes:
+// - Header with daily quote
+// - System snapshots (uptime, load, memory)
+// - Session summaries with key activities
+// - Briefing highlights
+// - Auto-detected mood tags
 ```
 
 ## 🧪 Testing
 
 ```bash
+# Run tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+```
 # Run tests
 npm test
 

@@ -1,7 +1,7 @@
 {
   "name": "notion-journal-skill",
-  "version": "1.0.0",
-  "description": "Production-ready Notion Journal management skill for OpenClaw",
+  "version": "1.1.0",
+  "description": "Production-ready Notion Journal management skill for OpenClaw with comprehensive memory scanning",
   "main": "lib/index.js",
   "scripts": {
     "test": "jest",
@@ -13,7 +13,8 @@
     "journal",
     "openclaw-skill",
     "diary",
-    "automation"
+    "automation",
+    "memory-scanning"
   ],
   "author": "Galatea",
   "license": "MIT",
