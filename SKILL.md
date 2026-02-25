@@ -1,37 +1,40 @@
-# SKILL.md - Notion Journal Skill
-
 ---
 name: notion-journal
-description: Production-ready Notion Journal management skill with automated entry creation, comprehensive memory scanning, smart content aggregation, intelligent backfilling, and duplicate detection.
-version: "1.1.0"
+description: Automate daily Notion journal entries with comprehensive memory scanning, content aggregation from session/snapshot/briefing files, intelligent backfilling, and duplicate detection. Use when creating journal entries, backfilling missing dates, or generating journal content from memory files. Triggers on "notion journal", "daily journal", "backfill journal", "create journal entry".
+version: "1.2.0"
 author: Galatea
 license: MIT
 ---
 
-# Notion Journal Skill 📝
+# Notion Journal Skill
 
-**Version:** 1.1.0 | **Author:** Galatea
+**Version:** 1.2.0 | **Author:** Galatea
 
 A production-ready skill for managing daily journals in Notion, with automatic content generation from memory files, comprehensive memory scanning, intelligent backfilling, and robust error handling.
 
+## What's New in v1.2.0
+
+- Added Notion Skill Ecosystem cross-references (see bottom of this file)
+- Fixed SKILL.md frontmatter position (must be at file start for correct loading)
+
 ## What's New in v1.1.0
 
-### 🆕 Comprehensive Memory Scanning
+### Comprehensive Memory Scanning
 
 The skill now supports **comprehensive mode** that scans **all** memory files for a date:
 
 - **System Snapshots** - Health metrics, uptime, load averages
-- **Session Records** - Work sessions, project activities  
+- **Session Records** - Work sessions, project activities
 - **Daily Briefings** - Moltbook, EvoMap, and other reports
 - **General Activity** - Any other memory files
 
-### 🆕 Smart Content Aggregation
+### Smart Content Aggregation
 
 Automatically generates structured Journal content:
-- 📊 System monitoring section
-- 🚀 Work session summaries  
-- 📰 Intelligence briefing highlights
-- 🌟 Auto-detected mood tags
+- System monitoring section
+- Work session summaries
+- Intelligence briefing highlights
+- Auto-detected mood tags
 - Formatted Notion blocks
 
 ## When to Use
@@ -133,12 +136,12 @@ Generate comprehensive journal content from **all** memory files.
 ```
 
 **Generated Structure:**
-- 📓 Header with daily quote
-- 📊 System monitoring (snapshots)
-- 🚀 Work sessions
-- 📰 Briefing highlights
-- 📝 Other activities
-- 🌟 Today's feelings
+- Header with daily quote
+- System monitoring (snapshots)
+- Work sessions
+- Briefing highlights
+- Other activities
+- Today's feelings
 
 ### backfillMissingDates(days)
 
@@ -165,8 +168,8 @@ Create entries for dates without journals.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| NOTION_TOKEN | ✅ | Notion Integration Token |
-| JOURNAL_DATABASE_ID | ✅ | Database ID |
+| NOTION_TOKEN | Yes | Notion Integration Token |
+| JOURNAL_DATABASE_ID | Yes | Database ID |
 
 ### Constructor Options
 
@@ -243,8 +246,22 @@ Built-in templates:
 
 ## Dependencies
 
-- @notionhq/client
-- @tryfabric/martian
+- `@notionhq/client` — Directly uses Notion's official SDK rather than notion-mcp-wrapper. This is a deliberate choice: journal automation is standalone and benefits from direct, low-latency API access without the overhead of MCP connection management.
+- `@tryfabric/martian`
+
+## Notion Skill Ecosystem
+
+OpenClaw Notion skills 形成互补生态，可单独使用或组合使用：
+
+| Skill | 职责 | 适用场景 |
+|-------|------|---------|
+| **notion-mcp-wrapper** | 弹性连接层：健康监控、自动重连、REST API 降级 | 任何需要高可用 Notion API 访问的场景 |
+| **notion-md-converter** | 格式转换：Markdown → Notion blocks | 批量导入文档、从 Markdown 源创建 Notion 页面 |
+| **notion-journal-skill** (本 skill) | 日记自动化：内存扫描、内容聚合、按日期创建条目 | 自动生成每日工作日志 |
+
+**组合示例**：
+- Markdown 日记导入：`notion-md-converter` 转换 Markdown 内容 → `notion-journal-skill` 聚合到日记条目
+- 全面日记生成：内存扫描 (`generateComprehensiveContent`) → 自动创建当日 Notion 条目
 
 ## License
 
