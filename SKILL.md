@@ -1,41 +1,44 @@
 ---
 name: notion-journal
 description: Automate daily Notion journal entries with comprehensive memory scanning, content aggregation from session/snapshot/briefing files, intelligent backfilling, and duplicate detection. Use when creating journal entries, backfilling missing dates, or generating journal content from memory files. Triggers on "notion journal", "daily journal", "backfill journal", "create journal entry".
-version: "1.2.0"
+version: "2.0.0"
 author: Galatea
 license: MIT
 ---
 
 # Notion Journal Skill
 
-**Version:** 1.2.0 | **Author:** Galatea
+**Version:** 2.0.0 | **Author:** Galatea
 
-A production-ready skill for managing daily journals in Notion, with automatic content generation from memory files, comprehensive memory scanning, intelligent backfilling, and robust error handling.
+A production-ready skill for managing daily journals in Notion, with automatic content generation from memory files, **subagent-based parallel processing**, comprehensive memory scanning across all directories, intelligent backfilling, and robust error handling.
+
+## What's New in v2.0.0
+
+### Subagent-Based Architecture
+
+The skill now uses **parallel subagents** for efficient processing:
+
+- **MemoryScanner** - Recursively scans all memory directories
+- **ContentAnalyzer** - Analyzes and categorizes content
+- **ContentGenerator** - Generates structured journal content
+- **NotionWriter** - Writes to Notion with error handling
+
+### Comprehensive Directory Scanning
+
+Scans **all** possible memory locations:
+- `~/.openclaw/workspace/memory/` and subdirectories
+- `~/.openclaw/memory/` and subdirectories
+- Auto-discovers any `memory/` folders in the workspace
+- **Discovered 63+ memory files** (vs ~20 in v1.x)
+
+### Reduced Context Pressure
+
+Each subagent handles a specific task, reducing individual context window usage and improving reliability.
 
 ## What's New in v1.2.0
 
-- Added Notion Skill Ecosystem cross-references (see bottom of this file)
-- Fixed SKILL.md frontmatter position (must be at file start for correct loading)
-
-## What's New in v1.1.0
-
-### Comprehensive Memory Scanning
-
-The skill now supports **comprehensive mode** that scans **all** memory files for a date:
-
-- **System Snapshots** - Health metrics, uptime, load averages
-- **Session Records** - Work sessions, project activities
-- **Daily Briefings** - Moltbook, EvoMap, and other reports
-- **General Activity** - Any other memory files
-
-### Smart Content Aggregation
-
-Automatically generates structured Journal content:
-- System monitoring section
-- Work session summaries
-- Intelligence briefing highlights
-- Auto-detected mood tags
-- Formatted Notion blocks
+- Added Notion Skill Ecosystem cross-references
+- Fixed SKILL.md frontmatter position
 
 ## When to Use
 
